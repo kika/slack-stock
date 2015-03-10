@@ -4,7 +4,7 @@ Runs on Google App Engine
 Steps to configure:
 
 1. Create Google App Engine project: `https://https://console.developers.google.com`
-1. Call it whatever you want. Your integration point for slack would be `http://<project-id>.appspot.com/price/<ticker>`
+1. Call it whatever you want. Your integration point for slack would be either `http://<project-id>.appspot.com/price/<ticker>` or `http://<project-id>.appspot.com/price`. In the latter case you'd need to specify a ticker name or a list of ticker names when calling the bot on the channel.
 1. Clone this repository
 1. Run `pip install -r requirements.txt -t lib/ in app subdirectory`
 1. Run `deploy.sh`
