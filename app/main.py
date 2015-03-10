@@ -41,7 +41,8 @@ def parse():
                 .replace(","," ")
                 .split()
             )
-    return { 'text': print_results(get_ticker(",".join(text))) }
+    congrats = "\nYou're gonna be rich, " + request.forms.get('user_name')
+    return { 'text': print_results(get_ticker(",".join(text))) + congrats }
 
 # Define an handler for 404 errors.
 @bottle.error(404)
