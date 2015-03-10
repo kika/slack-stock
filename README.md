@@ -1,5 +1,7 @@
 ### Bot to report stock price to any Slack channel 
-Runs on Google App Engine
+Sample implementation of Slack Webhook integration using Python and running on Google App Engine
+
+There's no heavy dependency on App Engine. Just remove `import ... memcache` and replace `httplib2.Http(memcache)` with just `httplib2.Http()` and you can run this code on any WSGI app server.
 
 Steps to configure:
 
