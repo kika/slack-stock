@@ -12,20 +12,23 @@ def get_ticker(ticker):
         "%09%09&format=json&diagnostics=true&env=http%3A%2F%2Fdatatables.org" \
         "%2Falltables.env&callback=".replace("$TICKER", ticker)
     (headers,content) = http.request(query, "GET")
-    try:
-        return json.loads(content)['query']['results']['quote']
-    except:
-        return "Unhandled error: " + sys.exc_info()[0]
+    if headers['status'] == '200':
+        try:
+            return json.loads(content)['query']['results']['quote']
+        except:
+            return "Unhandled error: " + sys.exc_info()[0]
+    return "HTTP status: " + headers['status']
 
 def print_results(results):
     printable = []
     if not isinstance(results, list):
         results = [results]
     for result in results:
-        printable.append( 
-            "%s: %s" 
-            % (result['symbol'], result['LastTradePriceOnly'])
-        )
+        if isinstance(result,list):
+            printable.append( 
+                "%s: %s" 
+                % (result['symbol'], result['LastTradePriceOnly'])
+            )
     return "\n".join(printable)
 
 @bottle.route('/price/<ticker>', method='POST')
@@ -41,8 +44,11 @@ def parse():
                 .replace(","," ")
                 .split()
             )
-    congrats = "\nYou're gonna be rich, " + request.forms.get('user_name')
-    return { 'text': print_results(get_ticker(",".join(text))) + congrats }
+    congrats = "\nYou're gonna be rich, @" + request.forms.get('user_name')
+    return { 
+        'text': print_results(get_ticker(",".join(text))) + congrats,
+        'link_names': 1
+        }
 
 # Define an handler for 404 errors.
 @bottle.error(404)
