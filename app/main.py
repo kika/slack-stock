@@ -19,6 +19,7 @@ def get_ticker(ticker):
 
 def print_results(results):
     printable = []
+    change_total = 0
     if not isinstance(results, list):
         results = [results]
     for result in results:
@@ -26,7 +27,10 @@ def print_results(results):
             "%s: %s" 
             % (result['symbol'], result['LastTradePriceOnly'])
         )
-    return "\n".join(printable)
+        if result['ChangeinPercent'] : 
+            change_total += float(result['ChangeinPercent'].replace('%',''))
+    congrats = "\nYou're gonna be %s, " % ('rich' if change_total > 0 else 'poor')
+    return "\n".join(printable) + congrats
 
 @bottle.route('/price/<ticker>', method='POST')
 def price(ticker):
@@ -41,8 +45,7 @@ def parse():
                 .replace(","," ")
                 .split()
             )
-    congrats = "\nYou're gonna be rich, " + request.forms.get('user_name')
-    return { 'text': print_results(get_ticker(",".join(text))) + congrats }
+    return { 'text': print_results(get_ticker(",".join(text))) + request.forms.get('user_name') }
 
 # Define an handler for 404 errors.
 @bottle.error(404)
