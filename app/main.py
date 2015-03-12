@@ -2,6 +2,7 @@ from bottle import Bottle,request
 import httplib2
 import json
 from google.appengine.api import memcache
+import logging
 
 bottle = Bottle()
 http = httplib2.Http(memcache)
@@ -13,27 +14,29 @@ def get_ticker(ticker):
         "%2Falltables.env&callback=".replace("$TICKER", ticker)
     (headers,content) = http.request(query, "GET")
     if headers['status'] == '200':
-        try:
             return json.loads(content)['query']['results']['quote']
-        except:
-            return "Unhandled error: " + sys.exc_info()[0]
     return "HTTP status: " + headers['status']
 
-def print_results(results):
+def print_results(req, results):
     printable = []
+    change_total = 0
     if not isinstance(results, list):
         results = [results]
     for result in results:
-        if isinstance(result,list):
+        if isinstance(result,dict):
             printable.append( 
                 "%s: %s" 
                 % (result['symbol'], result['LastTradePriceOnly'])
             )
-    return "\n".join(printable)
+            if result['ChangeinPercent'] : 
+                change_total += float(result['ChangeinPercent'].replace('%',''))
+    status = 'rich' if change_total > 0 else 'poor'
+    congrats = "\nYou're gonna be %s, @%s" % (status, req.forms.get('user_name'))
+    return "\n".join(printable) + congrats
 
 @bottle.route('/price/<ticker>', method='POST')
 def price(ticker):
-    return { 'text': print_results(get_ticker(ticker)) }
+    return { 'text': print_results(request, get_ticker(ticker)) }
 
 @bottle.route('/price', method='POST')
 def parse():
@@ -44,9 +47,8 @@ def parse():
                 .replace(","," ")
                 .split()
             )
-    congrats = "\nYou're gonna be rich, @" + request.forms.get('user_name')
     return { 
-        'text': print_results(get_ticker(",".join(text))) + congrats,
+        'text': print_results(request, get_ticker(",".join(text))),
         'link_names': 1
         }
 
